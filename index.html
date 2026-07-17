@@ -663,6 +663,10 @@ function completeLevel(level, stars) {
     data.stars[level] = stars;
   }
   if (level < 4) unlockLevel(level + 1);
+  // Once all 5 levels completed, unlock everything for free selection
+  if (level >= 4) {
+    data.unlockedLevels = [0, 1, 2, 3, 4];
+  }
   saveData(data);
 }
 
@@ -707,14 +711,15 @@ function renderLevels() {
   const grid = document.getElementById('levelsGrid');
   grid.innerHTML = '';
   for (let i = 0; i < 5; i++) {
-    const unlocked = isLevelUnlocked(i);
-    const completed = getSaveData().completedLevels[i];
+    const saveD = getSaveData();
+    const completed = saveD.completedLevels[i];
     const stars = getLevelStars(i);
     const card = document.createElement('div');
     card.className = 'level-card' + (unlocked ? '' : ' locked') + (completed ? ' completed' : '');
     
-    const starDisplay = stars > 0 ? '<span class="level-stars">' + '★'.repeat(stars) + '☆'.repeat(3-stars) + '</span>' : '';
-    const statusIcon = completed ? '✅' : (unlocked ? '▶️' : '🔒');
+    const allUnlocked = saveD.unlockedLevels.length >= 5;
+    const allUnlocked = data.unlockedLevels.length >= 5;
+    const statusIcon = completed ? '✅' : (unlocked ? (allUnlocked ? '🎮' : '▶️') : '🔒');
     
     card.innerHTML = `
       <div class="level-num">${i + 1}</div>
