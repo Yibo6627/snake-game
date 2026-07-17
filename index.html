@@ -162,9 +162,9 @@ body{display:flex;justify-content:center;align-items:center;min-height:100dvh;pa
 
 .game-controls{display:flex;flex-direction:column;gap:6px;margin-top:10px;align-items:center;}
 .control-row{display:flex;gap:6px;justify-content:center;}
-.ctrl-btn{width:60px;height:60px;border:none;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-size:24px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;}
+.ctrl-btn{width:72px;height:72px;border:none;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-size:28px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;}
 .ctrl-btn:active{transform:scale(0.9);background:var(--primary);color:#fff;}
-.ctrl-btn-space{width:130px;border-radius:30px;font-size:14px;font-weight:600;}
+.ctrl-btn-space{width:150px;border-radius:30px;font-size:15px;font-weight:600;}
 .ctrl-btn-space.paused{background:var(--success);color:#fff;}
 
 .game-hint{font-size:12px;color:var(--text-light);margin-top:6px;text-align:center;}
@@ -213,8 +213,8 @@ body{display:flex;justify-content:center;align-items:center;min-height:100dvh;pa
   .home-title{font-size:26px;}
   .home-icon{font-size:60px;}
   .btn-large{padding:14px 28px;font-size:17px;}
-  .ctrl-btn{width:54px;height:54px;font-size:20px;}
-  .ctrl-btn-space{width:110px;}
+  .ctrl-btn{width:64px;height:64px;font-size:24px;}
+  .ctrl-btn-space{width:130px;}
   .level-card{padding:14px 16px;}
 }
 @media(max-height:700px){
@@ -520,6 +520,7 @@ let currentPage = 'page-home';
 let soundEnabled = true;
 let darkMode = false;
 let failCountLevel5 = 0;
+let gameStarting = false;
 
 // Snake state
 let snake = [];
@@ -700,6 +701,7 @@ function showPage(pageId) {
 }
 
 function goToLevelSelect() {
+  failCountLevel5 = 0; // Reset fail counter on leaving
   showPage('page-levels');
 }
 
@@ -825,7 +827,7 @@ function submitHallOfFame() {
    ============================================ */
 function startLevel(level) {
   currentLevel = level;
-  failCountLevel5 = 0;
+  if (level !== 4) failCountLevel5 = 0; // Keep counter for level 5 retries
   showPage('page-game');
   initGame();
 }
@@ -879,8 +881,21 @@ function initGame() {
   updateGameUI();
   
   // Show welcome message
-  showGameMessage(LEVEL_WELCOME[currentLevel], 2000);
-  
+  // 3-2-1 倒计时开始
+  gameStarting = true;
+  let cd = 3;
+  showGameMessage('3', 0);
+  const cdTimer = setInterval(() => {
+    cd--;
+    if (cd > 0) {
+      showGameMessage(String(cd), 0);
+    } else if (cd === 0) {
+      showGameMessage('开始！', 400);
+      gameStarting = false;
+      clearInterval(cdTimer);
+    }
+  }, 800);
+
   // Start game loop
   gameRunning = true;
   if (gameLoop) clearInterval(gameLoop);
@@ -923,7 +938,7 @@ function isMovingObstacle(x, y) {
    GAME TICK
    ============================================ */
 function gameTick() {
-  if (!gameRunning) return;
+  if (!gameRunning || gameStarting) return;
   
   // Move moving obstacles (level 5)
   level5MovingTimer++;
@@ -1316,7 +1331,7 @@ function showGameMessage(text, duration) {
    CONTROLS
    ============================================ */
 function setDirection(dir) {
-  if (!gameRunning) return;
+  if (!gameRunning || gameStarting) return;
   const opposite = { up: 'down', down: 'up', left: 'right', right: 'left' };
   if (dir !== opposite[direction]) {
     nextDirection = dir;
