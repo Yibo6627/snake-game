@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -236,7 +236,7 @@ body{display:flex;justify-content:center;align-items:center;min-height:100dvh;pa
 
   <!-- ===== HOME PAGE ===== -->
   <div id="page-home" class="page active">
-    <span class="home-icon">🐍</span>
+    <span class="home-icon"><img src="assets/1.jpg" alt="icon" style="width:80px;height:80px;border-radius:50%;object-fit:cover;"></span>
     <h1 class="home-title">治愈贪吃蛇</h1>
     <p class="home-subtitle">
       <span>一场温柔又治愈的贪吃蛇冒险</span>
@@ -388,7 +388,7 @@ body{display:flex;justify-content:center;align-items:center;min-height:100dvh;pa
    
    Leave empty ('') to use the default gradient snake.
    ============================================ */
-const SNAKE_HEAD_IMAGE = '';
+const SNAKE_HEAD_IMAGE = 'assets/1.jpg';
 const SNAKE_BODY_IMAGE = '';
 
 /* ============================================
@@ -412,9 +412,9 @@ let COLORS = {
    Modify these to adjust game speed per level (ms per tick)
    Lower = faster
    ============================================ */
-const SPEED_CONFIG = [200, 160, 120, 90, 60];
-const FOOD_TARGET = [5, 8, 10, 12, 15];
-const PAR_TIME = [20, 25, 30, 35, 40]; // seconds for 3-star rating
+const SPEED_CONFIG = [250, 200, 150, 75, 45];
+const FOOD_TARGET = [4, 6, 8, 14, 18];
+const PAR_TIME = [25, 30, 35, 25, 25]; // seconds for 3-star rating
 
 /* ============================================
    OBSTACLE CONFIGURATION
@@ -423,7 +423,28 @@ const OBSTACLE_MAPS = [
   [],  // Level 1: no obstacles
   [{x:5,y:5},{x:6,y:5},{x:14,y:12},{x:14,y:13}],  // Level 2: few
   [{x:3,y:3},{x:3,y:4},{x:3,y:5},{x:16,y:14},{x:16,y:15},{x:16,y:16},{x:9,y:9},{x:10,y:9},{x:11,y:9}],  // Level 3
-  [  // Level 4: complex maze
+  [  // Level 4: dense maze
+    {x:4,y:2},{x:4,y:3},{x:4,y:4},{x:4,y:5},{x:4,y:6},
+    {x:15,y:12},{x:15,y:13},{x:15,y:14},{x:15,y:15},{x:15,y:16},
+    {x:7,y:7},{x:8,y:7},{x:9,y:7},{x:10,y:7},{x:11,y:7},
+    {x:7,y:11},{x:8,y:11},{x:9,y:11},{x:10,y:11},{x:11,y:11},
+    {x:2,y:10},{x:2,y:11},{x:2,y:12},{x:2,y:13},
+    {x:17,y:5},{x:17,y:6},{x:17,y:7},{x:17,y:8},
+    {x:9,y:2},{x:10,y:2},{x:11,y:2},
+    {x:9,y:16},{x:10,y:16},{x:11,y:16},
+  ],
+  [  // Level 5: extreme
+    {x:3,y:3},{x:3,y:4},{x:3,y:5},{x:3,y:6},{x:3,y:7},
+    {x:16,y:11},{x:16,y:12},{x:16,y:13},{x:16,y:14},{x:16,y:15},
+    {x:6,y:6},{x:7,y:6},{x:8,y:6},{x:9,y:6},
+    {x:12,y:12},{x:13,y:12},{x:14,y:12},{x:15,y:12},
+    {x:5,y:14},{x:5,y:15},{x:5,y:16},
+    {x:14,y:2},{x:14,y:3},{x:14,y:4},
+    {x:9,y:2},{x:10,y:2},{x:11,y:2},{x:12,y:2},
+    {x:9,y:16},{x:10,y:16},{x:11,y:16},{x:12,y:16},
+    {x:2,y:8},{x:2,y:9},{x:2,y:10},
+    {x:18,y:8},{x:18,y:9},{x:18,y:10},
+    {x:6,y:14},{x:6,y:15},{x:13,y:3},{x:13,y:4},
     {x:4,y:2},{x:4,y:3},{x:4,y:4},{x:4,y:5},
     {x:15,y:13},{x:15,y:14},{x:15,y:15},{x:15,y:16},
     {x:7,y:7},{x:8,y:7},{x:9,y:7},{x:10,y:7},
@@ -431,7 +452,18 @@ const OBSTACLE_MAPS = [
     {x:2,y:10},{x:2,y:11},{x:2,y:12},
     {x:17,y:6},{x:17,y:7},{x:17,y:8},
   ],
-  [  // Level 5: dense
+  [  // Level 5: extreme
+    {x:3,y:3},{x:3,y:4},{x:3,y:5},{x:3,y:6},{x:3,y:7},
+    {x:16,y:11},{x:16,y:12},{x:16,y:13},{x:16,y:14},{x:16,y:15},
+    {x:6,y:6},{x:7,y:6},{x:8,y:6},{x:9,y:6},
+    {x:12,y:12},{x:13,y:12},{x:14,y:12},{x:15,y:12},
+    {x:5,y:14},{x:5,y:15},{x:5,y:16},
+    {x:14,y:2},{x:14,y:3},{x:14,y:4},
+    {x:9,y:2},{x:10,y:2},{x:11,y:2},{x:12,y:2},
+    {x:9,y:16},{x:10,y:16},{x:11,y:16},{x:12,y:16},
+    {x:2,y:8},{x:2,y:9},{x:2,y:10},
+    {x:18,y:8},{x:18,y:9},{x:18,y:10},
+    {x:6,y:14},{x:6,y:15},{x:13,y:3},{x:13,y:4},
     {x:3,y:3},{x:3,y:4},{x:3,y:5},{x:3,y:6},
     {x:16,y:12},{x:16,y:13},{x:16,y:14},{x:16,y:15},
     {x:6,y:6},{x:7,y:6},{x:8,y:6},
@@ -831,9 +863,10 @@ function initGame() {
   // Level 5: moving obstacles
   if (currentLevel === 4) {
     movingObstacles = [
-      {x: 9, y: 9, dir: 'right', range: 4, timer: 0},
-      {x: 3, y: 14, dir: 'down', range: 4, timer: 0},
-      {x: 16, y: 4, dir: 'down', range: 5, timer: 0},
+      {x: 9, y: 9, dir: 'right', range: 5, timer: 0},
+      {x: 3, y: 14, dir: 'down', range: 5, timer: 0},
+      {x: 16, y: 4, dir: 'left', range: 6, timer: 0},
+      {x: 10, y: 9, dir: 'up', range: 4, timer: 0},
     ];
   }
   
@@ -892,7 +925,7 @@ function gameTick() {
   
   // Move moving obstacles (level 5)
   level5MovingTimer++;
-  if (currentLevel === 4 && level5MovingTimer % 4 === 0) {
+  if (currentLevel === 4 && level5MovingTimer % 3 === 0) {
     movingObstacles.forEach(mo => {
       let dx = 0, dy = 0;
       if (mo.dir === 'right') dx = 1;
