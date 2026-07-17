@@ -160,10 +160,10 @@ body{display:flex;justify-content:center;align-items:center;min-height:100dvh;pa
 .game-message{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card);padding:12px 24px;border-radius:var(--radius-sm);font-size:16px;font-weight:600;color:var(--text-primary);box-shadow:0 4px 20px var(--shadow-strong);opacity:0;transition:opacity 0.3s;pointer-events:none;text-align:center;}
 .game-message.show{opacity:1;}
 
-.game-controls{display:flex;flex-direction:column;gap:6px;margin-top:10px;align-items:center;}
-.control-row{display:flex;gap:6px;justify-content:center;}
-.ctrl-btn{width:72px;height:72px;border:none;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-size:28px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;}
-.ctrl-btn:active{transform:scale(0.9);background:var(--primary);color:#fff;}
+.game-controls{display:flex;flex-direction:column;gap:4px;margin-top:8px;align-items:center;}
+.control-row{display:flex;gap:3px;justify-content:center;}
+.ctrl-btn{width:72px;height:72px;border:none;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-size:28px;cursor:pointer;transition:all 0.05s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;}
+.ctrl-btn:active{transform:scale(0.85);background:var(--primary);color:#fff;}
 .ctrl-btn-space{width:150px;border-radius:30px;font-size:15px;font-weight:600;}
 .ctrl-btn-space.paused{background:var(--success);color:#fff;}
 
@@ -413,7 +413,7 @@ let COLORS = {
    Lower = faster
    ============================================ */
 const SPEED_CONFIG = [250, 200, 150, 75, 130];
-const FOOD_TARGET = [4, 6, 8, 14, 18];
+const FOOD_TARGET = [4, 6, 8, 14, 8];
 const PAR_TIME = [25, 30, 35, 25, 25]; // seconds for 3-star rating
 
 /* ============================================
@@ -433,16 +433,13 @@ const OBSTACLE_MAPS = [
     {x:9,y:2},{x:10,y:2},{x:11,y:2},
     {x:9,y:16},{x:10,y:16},{x:11,y:16},
   ],
-  [  // Level 5: reduced
-    {x:3,y:3},{x:3,y:4},{x:3,y:5},{x:3,y:6},
-    {x:16,y:12},{x:16,y:13},{x:16,y:14},{x:16,y:15},
-    {x:7,y:6},{x:8,y:6},{x:9,y:6},
-    {x:12,y:12},{x:13,y:12},{x:14,y:12},
-    {x:5,y:14},{x:5,y:15},
-    {x:14,y:2},{x:14,y:3},{x:14,y:4},
+  [  // Level 5: light
+    {x:3,y:3},{x:3,y:4},
+    {x:16,y:14},{x:16,y:15},
+    {x:7,y:6},{x:8,y:6},
+    {x:13,y:12},{x:14,y:12},
     {x:10,y:2},{x:11,y:2},
-    {x:9,y:16},{x:10,y:16},{x:11,y:16},
-    {x:2,y:8},{x:2,y:9},{x:18,y:8},{x:18,y:9},
+    {x:2,y:8},{x:18,y:8},
     {x:6,y:14},{x:13,y:3},
   ],
 ];
@@ -843,6 +840,11 @@ function initGame() {
       {x: 10, y: 9, dir: 'up', range: 4, timer: 0, speed: 4},
       {x: 6, y: 10, dir: 'right', range: 4, timer: 0, speed: 5},
       {x: 13, y: 5, dir: 'down', range: 5, timer: 0, speed: 5},
+      {x: 8, y: 14, dir: 'up', range: 4, timer: 0, speed: 5},
+      {x: 12, y: 4, dir: 'left', range: 4, timer: 0, speed: 5},
+      {x: 5, y: 8, dir: 'right', range: 4, timer: 0, speed: 4},
+      {x: 14, y: 10, dir: 'up', range: 4, timer: 0, speed: 4},
+      {x: 7, y: 12, dir: 'left', range: 4, timer: 0, speed: 5},
     ];
   }
   
