@@ -295,13 +295,13 @@ body{display:flex;justify-content:center;align-items:center;min-height:100dvh;pa
       </div>
       <div class="control-row">
         <button class="ctrl-btn" ontouchstart="setDirection('left');" onmousedown="setDirection('left');">◀</button>
-        <button class="ctrl-btn ctrl-btn-space" id="pauseBtn" onclick="togglePause()">⏸ 暂停</button>
+        <button class="ctrl-btn ctrl-btn-space" style="visibility:hidden;pointer-events:none;" disabled></button>
         <button class="ctrl-btn" ontouchstart="setDirection('right');" onmousedown="setDirection('right');">▶</button>
       </div>
       <div class="control-row">
         <button class="ctrl-btn" ontouchstart="setDirection('down');" onmousedown="setDirection('down');">▼</button>
       </div>
-      <div class="game-hint">⌨️ 键盘方向键 / WASD 控制 · 空格暂停</div>
+      <div class="game-hint">⌨️ 键盘方向键 / WASD 控制</div>
     </div>
   </div>
 
@@ -514,7 +514,7 @@ let canvas, ctx;
 let gameLoop = null;
 let animationFrame = null;
 let gameRunning = false;
-let gamePaused = false;
+let gamePaused = false // always false;
 let currentLevel = 0;
 let currentPage = 'page-home';
 let soundEnabled = true;
@@ -639,7 +639,7 @@ function getSaveData() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (raw) return JSON.parse(raw);
   } catch(e) {}
-  return { unlockedLevels: [0], completedLevels: {}, stars: {}, hof: [] };
+  return { unlockedLevels: [0, 1, 2, 3, 4], completedLevels: {}, stars: {}, hof: [] };
 }
 
 function saveData(data) {
@@ -662,17 +662,13 @@ function completeLevel(level, stars) {
   if (!data.stars[level] || data.stars[level] < stars) {
     data.stars[level] = stars;
   }
-  if (level < 4) unlockLevel(level + 1);
-  // Once all 5 levels completed, unlock everything for free selection
-  if (level >= 4) {
-    data.unlockedLevels = [0, 1, 2, 3, 4];
-  }
+  // All levels always unlocked - no progression needed
+  // (isLevelUnlocked always returns true)
   saveData(data);
 }
 
 function isLevelUnlocked(level) {
-  const data = getSaveData();
-  return data.unlockedLevels.includes(level);
+  return true;
 }
 
 function getLevelStars(level) {
@@ -927,7 +923,7 @@ function isMovingObstacle(x, y) {
    GAME TICK
    ============================================ */
 function gameTick() {
-  if (!gameRunning || gamePaused) return;
+  if (!gameRunning) return;
   
   // Move moving obstacles (level 5)
   level5MovingTimer++;
@@ -1328,21 +1324,7 @@ function setDirection(dir) {
   }
 }
 
-function togglePause() {
-  if (!gameRunning) return;
-  gamePaused = !gamePaused;
-  const btn = document.getElementById('pauseBtn');
-  if (gamePaused) {
-    btn.innerHTML = '▶ 继续';
-    btn.classList.add('paused');
-    showGameMessage('⏸ 已暂停', 0);
-  } else {
-    btn.innerHTML = '⏸ 暂停';
-    btn.classList.remove('paused');
-    document.getElementById('gameMessage').classList.remove('show');
-  }
-  playClickSound();
-}
+/* function togglePause removed - no pause needed */
 
 // Keyboard controls
 document.addEventListener('keydown', (e) => {
@@ -1353,7 +1335,7 @@ document.addEventListener('keydown', (e) => {
     case 'ArrowDown': case 's': case 'S': e.preventDefault(); setDirection('down'); break;
     case 'ArrowLeft': case 'a': case 'A': e.preventDefault(); setDirection('left'); break;
     case 'ArrowRight': case 'd': case 'D': e.preventDefault(); setDirection('right'); break;
-    case ' ': e.preventDefault(); togglePause(); break;
+
   }
 });
 
