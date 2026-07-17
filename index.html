@@ -711,14 +711,15 @@ function renderLevels() {
   const grid = document.getElementById('levelsGrid');
   grid.innerHTML = '';
   for (let i = 0; i < 5; i++) {
+    const unlocked = isLevelUnlocked(i);
     const saveD = getSaveData();
     const completed = saveD.completedLevels[i];
     const stars = getLevelStars(i);
+    const starDisplay = stars > 0 ? '<span class="level-stars">' + '★'.repeat(stars) + '☆'.repeat(3-stars) + '</span>' : '';
     const card = document.createElement('div');
     card.className = 'level-card' + (unlocked ? '' : ' locked') + (completed ? ' completed' : '');
     
     const allUnlocked = saveD.unlockedLevels.length >= 5;
-    const allUnlocked = data.unlockedLevels.length >= 5;
     const statusIcon = completed ? '✅' : (unlocked ? (allUnlocked ? '🎮' : '▶️') : '🔒');
     
     card.innerHTML = `
