@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>治愈贪吃蛇 · 暖心之旅</title>
+<style>
+/* ============================================
+   STYLE CONFIGURATION
+   Modify colors here to change the theme
+   ============================================ */
+:root {
+  --bg-primary: #F7F3EE;
+  --bg-card: #FFFFFF;
+  --bg-game: #F0EBE3;
+  --text-primary: #3D3D3D;
+  --text-secondary: #7A7A7A;
+  --text-light: #B0B0B0;
+  --primary: #8EC5B0;
+  --primary-dark: #6BA893;
+  --primary-light: #B8DECE;
+  --secondary: #E8C4B8;
+  --secondary-dark: #D4A898;
+  --accent: #F0D9C0;
+  --success: #A8D5BA;
+  --warning: #F5E6CC;
+  --danger: #E8A0A0;
+  --gold: #E8C56C;
+  --shadow: rgba(0,0,0,0.08);
+  --shadow-strong: rgba(0,0,0,0.15);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --canvas-bg: #E8E2D8;
+  --grid-line: rgba(0,0,0,0.04);
+  --snake-head: #6BA893;
+  --snake-body-start: #8EC5B0;
+  --snake-body-end: #B8DECE;
+  --obstacle: #C9A89C;
+  --food: #F4A5A5;
+  --food-glow: rgba(244,165,165,0.4);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1A1A2E;
+  --bg-card: #2D2D44;
+  --bg-game: #222238;
+  --text-primary: #E8E0D8;
+  --text-secondary: #B0A898;
+  --text-light: #706860;
+  --primary: #7BC4A4;
+  --primary-dark: #5DA88A;
+  --primary-light: #9DD8BC;
+  --secondary: #C9A89C;
+  --secondary-dark: #B08878;
+  --accent: #3D3D55;
+  --success: #6BA893;
+  --warning: #8A7A5A;
+  --danger: #C07070;
+  --shadow: rgba(0,0,0,0.25);
+  --shadow-strong: rgba(0,0,0,0.4);
+  --canvas-bg: #2A2A40;
+  --grid-line: rgba(255,255,255,0.04);
+  --obstacle: #6A5A50;
+}
+
+/* ===== Reset & Base ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);background:var(--bg-primary);color:var(--text-primary);transition:background var(--transition),color var(--transition);-webkit-tap-highlight-color:transparent;user-select:none;}
+body{display:flex;justify-content:center;align-items:center;min-height:100dvh;padding:16px;}
+
+/* ===== App Container ===== */
+#app{width:100%;max-width:520px;height:min(100dvh - 32px, 820px);background:var(--bg-card);border-radius:var(--radius);box-shadow:0 8px 40px var(--shadow-strong);overflow:hidden;position:relative;display:flex;flex-direction:column;transition:background var(--transition),box-shadow var(--transition);}
+
+/* ===== Pages ===== */
+.page{display:none;flex-direction:column;height:100%;padding:24px;overflow-y:auto;animation:fadeIn 0.4s ease;}
+.page.active{display:flex;}
+.page::-webkit-scrollbar{width:4px;}
+.page::-webkit-scrollbar-thumb{background:var(--primary-light);border-radius:4px;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+@keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg);opacity:0;}60%{transform:scale(1.2) rotate(5deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+@keyframes typewriter{from{width:0;}to{width:100%;}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+@keyframes confettiFall{0%{transform:translateY(-10px) rotate(0);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+@keyframes bounceIn{0%{transform:scale(0);opacity:0;}50%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+@keyframes gentleFloat{0%,100%{transform:translateY(0) rotate(0);}25%{transform:translateY(-4px) rotate(-2deg);}75%{transform:translateY(-2px) rotate(2deg);}}
+
+/* ===== Home Page ===== */
+#page-home{justify-content:center;align-items:center;text-align:center;gap:0;padding:32px 24px;}
+.home-icon{font-size:80px;margin-bottom:8px;animation:gentleFloat 3s ease-in-out infinite;display:block;}
+.home-title{font-size:32px;font-weight:700;color:var(--primary-dark);letter-spacing:2px;margin-bottom:6px;}
+.home-subtitle{font-size:15px;color:var(--text-secondary);margin-bottom:28px;line-height:1.6;}
+.home-subtitle span{display:block;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 36px;border:none;border-radius:var(--radius-sm);font-size:17px;font-weight:600;cursor:pointer;transition:all var(--transition);text-decoration:none;font-family:var(--font);min-height:52px;}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 16px var(--shadow);}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow-strong);}
+.btn-primary:active{transform:translateY(0);}
+.btn-secondary{background:var(--secondary);color:#fff;}
+.btn-secondary:hover{background:var(--secondary-dark);transform:translateY(-2px);}
+.btn-outline{background:transparent;color:var(--text-primary);border:2px solid var(--primary);}
+.btn-outline:hover{background:var(--primary);color:#fff;}
+.btn-sm{padding:10px 20px;font-size:14px;min-height:40px;}
+.btn-large{width:100%;max-width:280px;font-size:19px;padding:16px 36px;}
+
+.home-actions{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;margin-bottom:20px;}
+
+.home-footer{position:relative;width:100%;margin-top:auto;padding-top:12px;}
+.hall-of-fame-btn{background:none;border:1px solid var(--primary-light);color:var(--text-secondary);padding:10px 24px;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;transition:all var(--transition);width:100%;font-family:var(--font);}
+.hall-of-fame-btn:hover{background:var(--primary-light);color:var(--text-primary);border-color:var(--primary);}
+
+.home-toggles{display:flex;gap:8px;justify-content:center;margin-top:8px;}
+.toggle-btn{background:var(--bg-primary);border:1px solid var(--primary-light);border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;cursor:pointer;transition:all var(--transition);color:var(--text-secondary);display:flex;align-items:center;gap:6px;font-family:var(--font);}
+.toggle-btn:hover{border-color:var(--primary);color:var(--text-primary);}
+.toggle-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.toggle-btn .icon{font-size:16px;}
+
+/* ===== Level Select Page ===== */
+#page-levels{padding:20px 24px;}
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--primary-light);}
+.page-header h2{font-size:20px;font-weight:700;color:var(--primary-dark);}
+.back-btn{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-secondary);padding:4px;transition:color var(--transition);font-family:var(--font);}
+.back-btn:hover{color:var(--primary-dark);}
+
+.levels-grid{display:flex;flex-direction:column;gap:14px;flex:1;padding-bottom:8px;}
+.level-card{background:var(--bg-primary);border-radius:var(--radius-sm);padding:18px 20px;cursor:pointer;transition:all var(--transition);border:2px solid transparent;display:flex;align-items:center;gap:16px;}
+.level-card:hover:not(.locked){transform:translateX(4px);border-color:var(--primary-light);}
+.level-card.locked{opacity:0.5;cursor:not-allowed;filter:grayscale(0.5);}
+.level-card.completed{border-color:var(--success);}
+.level-card.active-select{border-color:var(--primary);background:var(--primary-light);}
+.level-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:var(--primary-light);color:var(--primary-dark);flex-shrink:0;}
+.level-card.locked .level-num{background:var(--text-light);color:#fff;}
+.level-card.completed .level-num{background:var(--success);color:#fff;}
+.level-info{flex:1;}
+.level-info h3{font-size:17px;font-weight:600;margin-bottom:2px;}
+.level-info p{font-size:13px;color:var(--text-secondary);}
+.level-status{font-size:13px;color:var(--text-light);display:flex;align-items:center;gap:6px;}
+.level-stars{color:var(--gold);font-size:16px;letter-spacing:2px;}
+.level-lock-icon{font-size:18px;}
+
+/* ===== Game Page ===== */
+#page-game{padding:16px 20px 12px;overflow:hidden;}
+.game-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.game-header-left{display:flex;align-items:center;gap:10px;}
+.game-level-badge{background:var(--primary);color:#fff;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;}
+.game-score{font-size:18px;font-weight:700;color:var(--text-primary);}
+.game-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.stat-item{background:var(--bg-primary);padding:6px 14px;border-radius:8px;font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;}
+.stat-item .stat-val{font-weight:700;color:var(--text-primary);}
+
+.game-canvas-wrapper{position:relative;flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg-game);border-radius:var(--radius-sm);overflow:hidden;min-height:280px;max-height:480px;}
+#gameCanvas{display:block;width:100%;height:100%;image-rendering:pixelated;background:var(--canvas-bg);border-radius:8px;}
+
+.game-message{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card);padding:12px 24px;border-radius:var(--radius-sm);font-size:16px;font-weight:600;color:var(--text-primary);box-shadow:0 4px 20px var(--shadow-strong);opacity:0;transition:opacity 0.3s;pointer-events:none;text-align:center;}
+.game-message.show{opacity:1;}
+
+.game-controls{display:flex;flex-direction:column;gap:6px;margin-top:10px;align-items:center;}
+.control-row{display:flex;gap:6px;justify-content:center;}
+.ctrl-btn{width:60px;height:60px;border:none;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-size:24px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;}
+.ctrl-btn:active{transform:scale(0.9);background:var(--primary);color:#fff;}
+.ctrl-btn-space{width:130px;border-radius:30px;font-size:14px;font-weight:600;}
+.ctrl-btn-space.paused{background:var(--success);color:#fff;}
+
+.game-hint{font-size:12px;color:var(--text-light);margin-top:6px;text-align:center;}
+
+/* ===== Result Page ===== */
+#page-result{justify-content:center;align-items:center;text-align:center;padding:32px 24px;gap:12px;}
+.result-icon{font-size:64px;margin-bottom:4px;}
+.result-title{font-size:26px;font-weight:700;margin-bottom:4px;}
+.result-title.win{color:var(--primary-dark);}
+.result-title.lose{color:var(--danger);}
+.result-message{font-size:15px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px;max-width:320px;}
+.result-message .msg-line{display:block;}
+.result-stars{margin:8px 0 16px;font-size:40px;}
+.result-stars .star{display:inline-block;opacity:0;transform:scale(0);margin:0 4px;}
+.result-stars .star.show{animation:starPop 0.5s forwards;}
+.result-stars .star.empty{opacity:0.3;color:var(--text-light);}
+.result-detail{font-size:14px;color:var(--text-secondary);margin-bottom:16px;}
+.result-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+
+.typewriter-text{display:inline-block;overflow:hidden;white-space:nowrap;border-right:2px solid transparent;font-size:28px;font-weight:800;background:linear-gradient(90deg, var(--gold), #FF8A5C, var(--gold));background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;width:0;}
+.typewriter-anim{animation:shimmer 2s linear infinite, typewriter 1.8s steps(10) forwards;}
+.typewriter-text.done{border-right-color:transparent;}
+
+/* ===== Hall of Fame Modal ===== */
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px);border-radius:var(--radius);}
+.modal-overlay.show{display:flex;}
+.modal-content{background:var(--bg-card);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;animation:bounceIn 0.4s ease;text-align:center;box-shadow:0 12px 48px var(--shadow-strong);}
+.modal-title{font-size:20px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;}
+.modal-text{font-size:14px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;}
+.modal-input{width:100%;padding:12px 16px;border:2px solid var(--primary-light);border-radius:var(--radius-sm);font-size:16px;font-family:var(--font);background:var(--bg-primary);color:var(--text-primary);outline:none;transition:border var(--transition);margin-bottom:16px;}
+.modal-input:focus{border-color:var(--primary);}
+.modal-actions{display:flex;gap:10px;justify-content:center;}
+
+/* ===== Level 5 Fail Modal ===== */
+.modal-fail-msg{font-size:22px;font-weight:700;color:var(--secondary-dark);margin:12px 0;line-height:1.5;}
+
+/* ===== Confetti Container ===== */
+.confetti-container{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:50;border-radius:var(--radius);}
+.confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettiFall var(--dur,3s) linear forwards;top:-10px;}
+
+/* ===== Responsive ===== */
+@media(max-width:540px){
+  body{padding:8px;}
+  #app{max-width:100%;height:100dvh;border-radius:12px;}
+  .page{padding:16px 16px;}
+  .home-title{font-size:26px;}
+  .home-icon{font-size:60px;}
+  .btn-large{padding:14px 28px;font-size:17px;}
+  .ctrl-btn{width:54px;height:54px;font-size:20px;}
+  .ctrl-btn-space{width:110px;}
+  .level-card{padding:14px 16px;}
+}
+@media(max-height:700px){
+  .home-icon{font-size:50px;margin-bottom:4px;}
+  .home-title{font-size:22px;}
+  .home-subtitle{font-size:13px;margin-bottom:16px;}
+  .btn-large{padding:12px 24px;font-size:16px;}
+  .game-canvas-wrapper{min-height:200px;max-height:360px;}
+  .ctrl-btn{width:48px;height:48px;font-size:18px;}
+}
+@media(min-height:900px){
+  #app{max-width:560px;height:min(100dvh - 32px, 900px);}
+  .game-canvas-wrapper{max-height:520px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HOME PAGE ===== -->
+  <div id="page-home" class="page active">
+    <span class="home-icon">🐍</span>
+    <h1 class="home-title">治愈贪吃蛇</h1>
+    <p class="home-subtitle">
+      <span>一场温柔又治愈的贪吃蛇冒险</span>
+      <span>一步步成长，遇见更好的自己</span>
+    </p>
+    <div class="home-actions">
+      <button class="btn btn-primary btn-large" onclick="showPage('page-levels')">开始游戏</button>
+      <button class="btn btn-outline btn-sm" onclick="showGameGuide()">游戏说明</button>
+    </div>
+    <div class="home-footer">
+      <button class="hall-of-fame-btn" onclick="showHallOfFame()">
+        🏆 名人堂 · 通关传奇
+      </button>
+      <div class="home-toggles">
+        <button class="toggle-btn active" id="soundToggle" onclick="toggleSound()">
+          <span class="icon">🔊</span> 音效
+        </button>
+        <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">
+          <span class="icon">🌙</span> 夜间
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEVEL SELECT PAGE ===== -->
+  <div id="page-levels" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="showPage('page-home')">‹</button>
+      <h2>选择关卡</h2>
+    </div>
+    <div class="levels-grid" id="levelsGrid"></div>
+  </div>
+
+  <!-- ===== GAME PAGE ===== -->
+  <div id="page-game" class="page">
+    <div class="game-header">
+      <div class="game-header-left">
+        <span class="game-level-badge" id="gameLevelBadge">第 1 关</span>
+        <span class="game-score" id="gameScoreDisplay">0</span>
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="showPage('page-levels')" style="padding:6px 14px;font-size:13px;">退出</button>
+    </div>
+    <div class="game-stats">
+      <span class="stat-item">⏱ <span class="stat-val" id="gameTimeDisplay">0</span>s</span>
+      <span class="stat-item">📏 <span class="stat-val" id="gameLengthDisplay">1</span></span>
+      <span class="stat-item">🎯 <span class="stat-val" id="gameFoodDisplay">0/5</span></span>
+      <span class="stat-item">⚡ <span class="stat-val" id="gameSpeedDisplay">慢速</span></span>
+    </div>
+    <div class="game-canvas-wrapper" id="gameCanvasWrapper">
+      <canvas id="gameCanvas"></canvas>
+      <div class="game-message" id="gameMessage"></div>
+    </div>
+    <div class="game-controls">
+      <div class="control-row">
+        <button class="ctrl-btn" ontouchstart="setDirection('up');" onmousedown="setDirection('up');">▲</button>
+      </div>
+      <div class="control-row">
+        <button class="ctrl-btn" ontouchstart="setDirection('left');" onmousedown="setDirection('left');">◀</button>
+        <button class="ctrl-btn ctrl-btn-space" id="pauseBtn" onclick="togglePause()">⏸ 暂停</button>
+        <button class="ctrl-btn" ontouchstart="setDirection('right');" onmousedown="setDirection('right');">▶</button>
+      </div>
+      <div class="control-row">
+        <button class="ctrl-btn" ontouchstart="setDirection('down');" onmousedown="setDirection('down');">▼</button>
+      </div>
+      <div class="game-hint">⌨️ 键盘方向键 / WASD 控制 · 空格暂停</div>
+    </div>
+  </div>
+
+  <!-- ===== RESULT PAGE ===== -->
+  <div id="page-result" class="page">
+    <div class="result-icon" id="resultIcon">🎉</div>
+    <div class="result-title" id="resultTitle">恭喜通关！</div>
+    <div class="result-message" id="resultMessage"></div>
+    <div class="result-stars" id="resultStars"></div>
+    <div class="result-detail" id="resultDetail"></div>
+    <div class="result-actions" id="resultActions"></div>
+  </div>
+
+  <!-- ===== HALL OF FAME MODAL ===== -->
+  <div class="modal-overlay" id="hofModal">
+    <div class="modal-content">
+      <div class="modal-title">🏆 名人堂</div>
+      <div class="modal-text" id="hofList">还没有通关纪录……<br>等你来创造传奇！</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('hofModal')">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HALL OF FAME ENTRY MODAL ===== -->
+  <div class="modal-overlay" id="hofEntryModal">
+    <div class="modal-content">
+      <div class="modal-title">🏆 恭喜完成全部关卡！</div>
+      <div class="modal-text">你已经贪吃蛇大师了！<br>留下你的名字，载入名人堂吧 ✨</div>
+      <input class="modal-input" id="hofNameInput" placeholder="输入你的名字" maxlength="12" autocomplete="off">
+      <div class="modal-actions">
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('hofEntryModal')">跳过</button>
+        <button class="btn btn-primary btn-sm" onclick="submitHallOfFame()">载入名人堂</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEVEL 5 FAIL MODAL ===== -->
+  <div class="modal-overlay" id="failModal">
+    <div class="modal-content">
+      <div class="modal-title">💪 别灰心</div>
+      <div class="modal-fail-msg">可以找王yb他会帮你</div>
+      <div class="modal-text" style="font-size:13px;color:var(--text-light);">休息一下，调整好心态再挑战吧</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('failModal');goToLevelSelect()">返回选关</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('failModal');retryLevel()">再来一次</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GAME GUIDE MODAL ===== -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-content" style="text-align:left;">
+      <div class="modal-title" style="text-align:center;">📖 游戏说明</div>
+      <div class="modal-text">
+        <p style="margin-bottom:8px;"><strong>🎯 目标：</strong>控制贪吃蛇吃掉所有食物，通关每一关</p>
+        <p style="margin-bottom:8px;"><strong>🎮 操作：</strong></p>
+        <p style="padding-left:12px;margin-bottom:4px;">· 键盘：方向键 ↑↓←→ 或 W A S D</p>
+        <p style="padding-left:12px;margin-bottom:4px;">· 触屏：点击屏幕上的方向按钮</p>
+        <p style="padding-left:12px;margin-bottom:4px;">· 空格键 / 暂停按钮：暂停游戏</p>
+        <p style="margin-bottom:8px;"><strong>🌟 星级评价：</strong>通关越快，星级越高</p>
+        <p style="margin-bottom:8px;"><strong>🔓 关卡解锁：</strong>通关当前关，自动解锁下一关</p>
+        <p style="margin-bottom:4px;color:var(--text-light);font-size:12px;">⚠️ 避开墙壁、障碍物和尾巴</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('guideModal')" style="width:100%;">明白了！</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================
+   SNAKE IMAGE CONFIGURATION
+   ============================================
+   To use custom images for the snake head and body,
+   replace the URLs below with your image paths.
+   Supports transparent PNG images.
+   
+   Example:
+   const SNAKE_HEAD_IMAGE = 'assets/snake-head.png';
+   const SNAKE_BODY_IMAGE = 'assets/snake-body.png';
+   
+   Leave empty ('') to use the default gradient snake.
+   ============================================ */
+const SNAKE_HEAD_IMAGE = '';
+const SNAKE_BODY_IMAGE = '';
+
+/* ============================================
+   COLOR CONFIGURATION
+   Modify these to change snake/food/obstacle colors
+   These defaults are used; updateCanvasColors() syncs with CSS on init
+   ============================================ */
+let COLORS = {
+  snakeHead: '#6BA893',
+  snakeBodyStart: '#8EC5B0',
+  snakeBodyEnd: '#B8DECE',
+  food: '#F4A5A5',
+  foodGlow: 'rgba(244,165,165,0.4)',
+  obstacle: '#C9A89C',
+  canvasBg: '#E8E2D8',
+  gridLine: 'rgba(0,0,0,0.04)',
+};
+
+/* ============================================
+   SPEED CONFIGURATION
+   Modify these to adjust game speed per level (ms per tick)
+   Lower = faster
+   ============================================ */
+const SPEED_CONFIG = [200, 160, 120, 90, 60];
+const FOOD_TARGET = [5, 8, 10, 12, 15];
+const PAR_TIME = [20, 25, 30, 35, 40]; // seconds for 3-star rating
+
+/* ============================================
+   OBSTACLE CONFIGURATION
+   ============================================ */
+const OBSTACLE_MAPS = [
+  [],  // Level 1: no obstacles
+  [{x:5,y:5},{x:6,y:5},{x:14,y:12},{x:14,y:13}],  // Level 2: few
+  [{x:3,y:3},{x:3,y:4},{x:3,y:5},{x:16,y:14},{x:16,y:15},{x:16,y:16},{x:9,y:9},{x:10,y:9},{x:11,y:9}],  // Level 3
+  [  // Level 4: complex maze
+    {x:4,y:2},{x:4,y:3},{x:4,y:4},{x:4,y:5},
+    {x:15,y:13},{x:15,y:14},{x:15,y:15},{x:15,y:16},
+    {x:7,y:7},{x:8,y:7},{x:9,y:7},{x:10,y:7},
+    {x:7,y:11},{x:8,y:11},{x:9,y:11},{x:10,y:11},
+    {x:2,y:10},{x:2,y:11},{x:2,y:12},
+    {x:17,y:6},{x:17,y:7},{x:17,y:8},
+  ],
+  [  // Level 5: dense
+    {x:3,y:3},{x:3,y:4},{x:3,y:5},{x:3,y:6},
+    {x:16,y:12},{x:16,y:13},{x:16,y:14},{x:16,y:15},
+    {x:6,y:6},{x:7,y:6},{x:8,y:6},
+    {x:12,y:12},{x:13,y:12},{x:14,y:12},
+    {x:5,y:14},{x:5,y:15},{x:5,y:16},
+    {x:14,y:2},{x:14,y:3},{x:14,y:4},
+    {x:9,y:2},{x:10,y:2},{x:11,y:2},
+    {x:9,y:16},{x:10,y:16},{x:11,y:16},
+    {x:2,y:8},{x:2,y:9},{x:18,y:8},{x:18,y:9},
+  ],
+];
+
+/* ============================================
+   LEVEL WELCOME MESSAGES
+   ============================================ */
+const LEVEL_WELCOME = [
+  '🌱 欢迎来到贪吃蛇的世界，让我们一起慢慢开始吧',
+  '🌿 你已经有了基础，接下来会更有趣哦',
+  '🌊 挑战开始升级了，但你一定可以的',
+  '🔥 普通的关卡已经难不倒你了，来吧！',
+  '👑 最终关卡，你准备好创造传奇了吗？',
+];
+
+const LEVEL_PASS = [
+  '✨ 太棒了！你找到了节奏，继续前进吧',
+  '🌟 做得很好！你已经掌握了技巧',
+  '⚡ 太厉害了！你的反应越来越快了',
+  '🏆 你已经是高手了！离终点只差一步',
+  '👑 传奇诞生！你是最强的！',
+];
+
+const LEVEL_FAIL = [
+  '🌸 没关系，第一次总是最难的，再来一次吧',
+  '💪 别着急，慢慢来，你已经比之前更好了',
+  '🌙 这一关确实有难度，休息一下再试试',
+  '🎯 高手也会失误，调整心态再来一次',
+  '💫 终极挑战不易，但你的坚持已经值得骄傲',
+];
+
+const LEVEL_NAMES = ['初次相遇', '渐入佳境', '勇往直前', '高手之路', '终极挑战'];
+const SPEED_NAMES = ['慢速', '中慢速', '中速', '快速', '极速'];
+
+/* ============================================
+   GAME STATE
+   ============================================ */
+const GRID_SIZE = 20;
+let canvas, ctx;
+let gameLoop = null;
+let animationFrame = null;
+let gameRunning = false;
+let gamePaused = false;
+let currentLevel = 0;
+let currentPage = 'page-home';
+let soundEnabled = true;
+let darkMode = false;
+let failCountLevel5 = 0;
+
+// Snake state
+let snake = [];
+let direction = 'right';
+let nextDirection = 'right';
+let food = null;
+let foodPulse = 0;
+let obstacles = [];
+let movingObstacles = [];
+let score = 0;
+let foodEaten = 0;
+let foodTarget = 5;
+let gameTime = 0;
+let gameTimer = null;
+let snakeLength = 1;
+let eatAnimation = 0;
+let snakeHeadImg = null;
+let snakeBodyImg = null;
+let imagesLoaded = false;
+let canvasWidth = 0;
+let canvasHeight = 0;
+let cellSize = 0;
+let particles = [];
+let level5MovingTimer = 0;
+
+/* ============================================
+   SOUND ENGINE (Web Audio API)
+   Gentle, pleasant sounds - no external files needed
+   ============================================ */
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playTone(freq, duration, type, volume) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(volume || 0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playEatSound() {
+  playTone(523, 0.1, 'sine', 0.12);
+  setTimeout(() => playTone(659, 0.12, 'sine', 0.1), 80);
+}
+
+function playMoveSound() {
+  playTone(300, 0.03, 'sine', 0.03);
+}
+
+function playWinSound() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((n, i) => setTimeout(() => playTone(n, 0.2, 'sine', 0.12), i * 120));
+}
+
+function playLoseSound() {
+  const notes = [400, 350, 300, 200];
+  notes.forEach((n, i) => setTimeout(() => playTone(n, 0.25, 'sine', 0.1), i * 150));
+}
+
+function playUnlockSound() {
+  playTone(784, 0.15, 'sine', 0.1);
+  setTimeout(() => playTone(988, 0.15, 'sine', 0.1), 100);
+  setTimeout(() => playTone(1175, 0.2, 'sine', 0.12), 200);
+}
+
+function playStarSound() {
+  playTone(1047, 0.3, 'sine', 0.1);
+}
+
+function playClickSound() {
+  playTone(600, 0.06, 'sine', 0.06);
+}
+
+function playLevelCompleteJingle() {
+  const notes = [523, 587, 659, 784, 880, 1047];
+  notes.forEach((n, i) => setTimeout(() => playTone(n, 0.18, 'sine', 0.1), i * 100));
+}
+
+function playFinalVictorySound() {
+  const melody = [523, 659, 784, 659, 784, 1047, 784, 1047, 1319];
+  melody.forEach((n, i) => setTimeout(() => playTone(n, 0.25, 'sine', 0.12), i * 130));
+}
+
+function playFailCountSound() {
+  playTone(300, 0.3, 'triangle', 0.08);
+}
+
+/* ============================================
+   AUDIO CONTEXT RESUME (for autoplay policy)
+   ============================================ */
+document.addEventListener('click', () => {
+  try { getAudioCtx().resume(); } catch(e) {}
+}, { once: true });
+
+/* ============================================
+   SAVE / LOAD SYSTEM
+   ============================================ */
+const SAVE_KEY = 'healing_snake_save';
+
+function getSaveData() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { unlockedLevels: [0], completedLevels: {}, stars: {}, hof: [] };
+}
+
+function saveData(data) {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function unlockLevel(level) {
+  const data = getSaveData();
+  if (!data.unlockedLevels.includes(level)) {
+    data.unlockedLevels.push(level);
+    data.unlockedLevels.sort((a,b) => a-b);
+    saveData(data);
+    playUnlockSound();
+  }
+}
+
+function completeLevel(level, stars) {
+  const data = getSaveData();
+  data.completedLevels[level] = true;
+  if (!data.stars[level] || data.stars[level] < stars) {
+    data.stars[level] = stars;
+  }
+  if (level < 4) unlockLevel(level + 1);
+  saveData(data);
+}
+
+function isLevelUnlocked(level) {
+  const data = getSaveData();
+  return data.unlockedLevels.includes(level);
+}
+
+function getLevelStars(level) {
+  const data = getSaveData();
+  return data.stars[level] || 0;
+}
+
+function addHallOfFame(name) {
+  const data = getSaveData();
+  data.hof.push({ name, date: new Date().toLocaleDateString('zh-CN'), id: Date.now() });
+  if (data.hof.length > 20) data.hof = data.hof.slice(-20);
+  saveData(data);
+}
+
+function getHallOfFame() {
+  return getSaveData().hof || [];
+}
+
+/* ============================================
+   UI / PAGE MANAGEMENT
+   ============================================ */
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  currentPage = pageId;
+  playClickSound();
+  if (pageId === 'page-levels') renderLevels();
+  if (pageId === 'page-home') updateHomeHallOfFame();
+}
+
+function goToLevelSelect() {
+  showPage('page-levels');
+}
+
+function renderLevels() {
+  const grid = document.getElementById('levelsGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const unlocked = isLevelUnlocked(i);
+    const completed = getSaveData().completedLevels[i];
+    const stars = getLevelStars(i);
+    const card = document.createElement('div');
+    card.className = 'level-card' + (unlocked ? '' : ' locked') + (completed ? ' completed' : '');
+    
+    const starDisplay = stars > 0 ? '<span class="level-stars">' + '★'.repeat(stars) + '☆'.repeat(3-stars) + '</span>' : '';
+    const statusIcon = completed ? '✅' : (unlocked ? '▶️' : '🔒');
+    
+    card.innerHTML = `
+      <div class="level-num">${i + 1}</div>
+      <div class="level-info">
+        <h3>第${i+1}关 · ${LEVEL_NAMES[i]}</h3>
+        <p>${LEVEL_WELCOME[i].replace(/^[^\s]+\s/,'')}</p>
+      </div>
+      <div class="level-status">
+        ${starDisplay ? starDisplay + ' ' : ''}
+        <span class="level-lock-icon">${statusIcon}</span>
+      </div>
+    `;
+    
+    if (unlocked) {
+      card.onclick = () => { playClickSound(); startLevel(i); };
+    }
+    grid.appendChild(card);
+  }
+}
+
+function showGameGuide() {
+  playClickSound();
+  document.getElementById('guideModal').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  playClickSound();
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundToggle');
+  btn.classList.toggle('active');
+  btn.innerHTML = soundEnabled ? '<span class="icon">🔊</span> 音效' : '<span class="icon">🔇</span> 静音';
+  playClickSound();
+}
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  const btn = document.getElementById('themeToggle');
+  btn.classList.toggle('active');
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : '');
+  btn.innerHTML = darkMode ? '<span class="icon">☀️</span> 日间' : '<span class="icon">🌙</span> 夜间';
+  playClickSound();
+  updateCanvasColors();
+}
+
+function updateCanvasColors() {
+  const style = getComputedStyle(document.documentElement);
+  COLORS.snakeHead = style.getPropertyValue('--snake-head').trim() || COLORS.snakeHead;
+  COLORS.snakeBodyStart = style.getPropertyValue('--snake-body-start').trim() || COLORS.snakeBodyStart;
+  COLORS.snakeBodyEnd = style.getPropertyValue('--snake-body-end').trim() || COLORS.snakeBodyEnd;
+  COLORS.food = style.getPropertyValue('--food').trim() || COLORS.food;
+  COLORS.foodGlow = style.getPropertyValue('--food-glow').trim() || COLORS.foodGlow;
+  COLORS.obstacle = style.getPropertyValue('--obstacle').trim() || COLORS.obstacle;
+  COLORS.canvasBg = style.getPropertyValue('--canvas-bg').trim() || COLORS.canvasBg;
+  COLORS.gridLine = style.getPropertyValue('--grid-line').trim() || COLORS.gridLine;
+}
+
+function showHallOfFame() {
+  playClickSound();
+  const hof = getHallOfFame();
+  const list = document.getElementById('hofList');
+  if (hof.length === 0) {
+    list.innerHTML = '还没有通关纪录……<br>等你来创造传奇！';
+  } else {
+    list.innerHTML = hof.map((e, i) => 
+      `<div style="padding:6px 0;border-bottom:1px solid var(--primary-light);display:flex;justify-content:space-between;align-items:center;">
+        <span><strong>${i+1}.</strong> ${e.name}</span>
+        <span style="font-size:12px;color:var(--text-light);">${e.date}</span>
+      </div>`
+    ).join('');
+  }
+  document.getElementById('hofModal').classList.add('show');
+}
+
+function updateHomeHallOfFame() {
+  const hof = getHallOfFame();
+  const btn = document.querySelector('.hall-of-fame-btn');
+  if (hof.length > 0) {
+    const latest = hof[hof.length-1];
+    btn.textContent = `🏆 名人堂 · ${hof.length}位通关者`;
+  } else {
+    btn.textContent = '🏆 名人堂 · 通关传奇';
+  }
+}
+
+function submitHallOfFame() {
+  const name = document.getElementById('hofNameInput').value.trim();
+  if (name) {
+    addHallOfFame(name);
+    document.getElementById('hofNameInput').value = '';
+    closeModal('hofEntryModal');
+    updateHomeHallOfFame();
+    playFinalVictorySound();
+    showPage('page-home');
+  } else {
+    document.getElementById('hofNameInput').focus();
+    document.getElementById('hofNameInput').placeholder = '请输入名字～';
+  }
+}
+
+/* ============================================
+   GAME INITIALIZATION
+   ============================================ */
+function startLevel(level) {
+  currentLevel = level;
+  failCountLevel5 = 0;
+  showPage('page-game');
+  initGame();
+}
+
+function initGame() {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  
+  // Size calculation
+  const wrapper = document.getElementById('gameCanvasWrapper');
+  const w = wrapper.clientWidth - 4;
+  const h = wrapper.clientHeight - 4;
+  const size = Math.min(w, h, 500);
+  canvasWidth = size;
+  canvasHeight = size;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  cellSize = canvasWidth / GRID_SIZE;
+  
+  // Reset state
+  snake = [{x: Math.floor(GRID_SIZE/2), y: Math.floor(GRID_SIZE/2)}];
+  direction = 'right';
+  nextDirection = 'right';
+  score = 0;
+  foodEaten = 0;
+  foodTarget = FOOD_TARGET[currentLevel];
+  gameTime = 0;
+  snakeLength = 1;
+  eatAnimation = 0;
+  particles = [];
+  gamePaused = false;
+  
+  // Setup level
+  obstacles = JSON.parse(JSON.stringify(OBSTACLE_MAPS[currentLevel] || []));
+  movingObstacles = [];
+  
+  // Level 5: moving obstacles
+  if (currentLevel === 4) {
+    movingObstacles = [
+      {x: 9, y: 9, dir: 'right', range: 4, timer: 0},
+      {x: 3, y: 14, dir: 'down', range: 4, timer: 0},
+      {x: 16, y: 4, dir: 'down', range: 5, timer: 0},
+    ];
+  }
+  
+  // Generate first food
+  food = generateFood();
+  
+  // Update UI
+  updateGameUI();
+  
+  // Show welcome message
+  showGameMessage(LEVEL_WELCOME[currentLevel], 2000);
+  
+  // Start game loop
+  gameRunning = true;
+  if (gameLoop) clearInterval(gameLoop);
+  if (gameTimer) clearInterval(gameTimer);
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  
+  gameLoop = setInterval(gameTick, SPEED_CONFIG[currentLevel]);
+  gameTimer = setInterval(() => { if (!gamePaused) { gameTime++; updateGameUI(); } }, 1000);
+  animationFrame = requestAnimationFrame(render);
+  
+  // Reset pause button
+  document.getElementById('pauseBtn').innerHTML = '⏸ 暂停';
+  document.getElementById('pauseBtn').classList.remove('paused');
+}
+
+function generateFood() {
+  let pos;
+  let attempts = 0;
+  do {
+    pos = { x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) };
+    attempts++;
+  } while (attempts < 200 && (
+    isObstacle(pos.x, pos.y) || 
+    snake.some(s => s.x === pos.x && s.y === pos.y) ||
+    movingObstacles.some(m => m.x === pos.x && m.y === pos.y)
+  ));
+  return pos;
+}
+
+function isObstacle(x, y) {
+  if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return true;
+  return obstacles.some(o => o.x === x && o.y === y);
+}
+
+function isMovingObstacle(x, y) {
+  return movingObstacles.some(m => m.x === x && m.y === y);
+}
+
+/* ============================================
+   GAME TICK
+   ============================================ */
+function gameTick() {
+  if (!gameRunning || gamePaused) return;
+  
+  // Move moving obstacles (level 5)
+  level5MovingTimer++;
+  if (currentLevel === 4 && level5MovingTimer % 4 === 0) {
+    movingObstacles.forEach(mo => {
+      let dx = 0, dy = 0;
+      if (mo.dir === 'right') dx = 1;
+      else if (mo.dir === 'left') dx = -1;
+      else if (mo.dir === 'down') dy = 1;
+      else if (mo.dir === 'up') dy = -1;
+      
+      const nx = mo.x + dx;
+      const ny = mo.y + dy;
+      
+      // Check if we hit a wall, obstacle, or another moving obstacle
+      if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || 
+          obstacles.some(o => o.x === nx && o.y === ny)) {
+        mo.dir = mo.dir === 'right' ? 'left' : mo.dir === 'left' ? 'right' : 
+                 mo.dir === 'down' ? 'up' : 'down';
+      } else {
+        mo.x = nx;
+        mo.y = ny;
+      }
+    });
+  }
+  
+  // Apply direction
+  direction = nextDirection;
+  
+  // Calculate new head position
+  const head = snake[0];
+  let newHead = { ...head };
+  switch (direction) {
+    case 'up': newHead.y--; break;
+    case 'down': newHead.y++; break;
+    case 'left': newHead.x--; break;
+    case 'right': newHead.x++; break;
+  }
+  
+  // Check wall collision
+  if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
+    gameOver();
+    return;
+  }
+  
+  // Check obstacle collision
+  if (isObstacle(newHead.x, newHead.y) || isMovingObstacle(newHead.x, newHead.y)) {
+    gameOver();
+    return;
+  }
+  
+  // Check self collision
+  if (snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+    gameOver();
+    return;
+  }
+  
+  // Move snake
+  snake.unshift(newHead);
+  
+  // Check food
+  if (newHead.x === food.x && newHead.y === food.y) {
+    score += 10;
+    foodEaten++;
+    snakeLength = snake.length;
+    eatAnimation = 10;
+    playEatSound();
+    spawnParticles(food.x, food.y, COLORS.food);
+    
+    if (foodEaten >= foodTarget) {
+      levelComplete();
+      return;
+    }
+    
+    food = generateFood();
+  } else {
+    snake.pop();
+  }
+  
+  snakeLength = snake.length;
+  updateGameUI();
+}
+
+/* ============================================
+   PARTICLES
+   ============================================ */
+function spawnParticles(gx, gy, color) {
+  const cx = gx * cellSize + cellSize/2;
+  const cy = gy * cellSize + cellSize/2;
+  for (let i = 0; i < 8; i++) {
+    const angle = (Math.PI * 2 / 8) * i;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * (1.5 + Math.random() * 2),
+      vy: Math.sin(angle) * (1.5 + Math.random() * 2),
+      life: 1,
+      decay: 0.02 + Math.random() * 0.02,
+      size: 4 + Math.random() * 4,
+      color: color,
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+/* ============================================
+   RENDER
+   ============================================ */
+function render() {
+  if (!ctx) return;
+  
+  const cw = canvasWidth;
+  const ch = canvasHeight;
+  const cs = cellSize;
+  
+  // Clear
+  ctx.fillStyle = COLORS.canvasBg;
+  ctx.fillRect(0, 0, cw, ch);
+  
+  // Grid lines
+  ctx.strokeStyle = COLORS.gridLine;
+  ctx.lineWidth = 0.5;
+  for (let i = 1; i < GRID_SIZE; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * cs, 0);
+    ctx.lineTo(i * cs, ch);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * cs);
+    ctx.lineTo(cw, i * cs);
+    ctx.stroke();
+  }
+  
+  // Obstacles
+  obstacles.forEach(o => {
+    const x = o.x * cs, y = o.y * cs;
+    ctx.fillStyle = COLORS.obstacle;
+    roundRect(ctx, x + 2, y + 2, cs - 4, cs - 4, 4);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    roundRect(ctx, x + 4, y + 4, cs - 8, cs - 8, 3);
+    ctx.fill();
+  });
+  
+  // Moving obstacles (level 5)
+  movingObstacles.forEach(mo => {
+    const x = mo.x * cs, y = mo.y * cs;
+    ctx.fillStyle = '#E07070';
+    roundRect(ctx, x + 2, y + 2, cs - 4, cs - 4, 4);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    roundRect(ctx, x + 4, y + 4, cs - 8, cs - 8, 3);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = `${cs * 0.5}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const arrow = mo.dir === 'up' ? '▲' : mo.dir === 'down' ? '▼' : mo.dir === 'left' ? '◀' : '▶';
+    ctx.fillText(arrow, x + cs/2, y + cs/2);
+  });
+  
+  // Food
+  if (food) {
+    const fx = food.x * cs, fy = food.y * cs;
+    foodPulse = (foodPulse + 0.05) % (Math.PI * 2);
+    const pulse = Math.sin(foodPulse) * 0.15 + 1;
+    
+    const gradient = ctx.createRadialGradient(fx + cs/2, fy + cs/2, 2, fx + cs/2, fy + cs/2, cs * 0.8);
+    gradient.addColorStop(0, COLORS.foodGlow);
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(fx + cs/2, fy + cs/2, cs * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    const r = (cs * 0.4) * pulse;
+    ctx.fillStyle = COLORS.food;
+    ctx.beginPath();
+    ctx.arc(fx + cs/2, fy + cs/2, r, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.arc(fx + cs/2 - r*0.25, fy + cs/2 - r*0.25, r*0.35, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = '#8B7355';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(fx + cs/2, fy + cs/2 - r + 2);
+    ctx.lineTo(fx + cs/2 + 2, fy + cs/2 - r - 3);
+    ctx.stroke();
+  }
+  
+  // Snake
+  if (snake.length > 0) {
+    for (let i = snake.length - 1; i >= 0; i--) {
+      const seg = snake[i];
+      const sx = seg.x * cs, sy = seg.y * cs;
+      const t = snake.length > 1 ? i / (snake.length - 1) : 0;
+      
+      if (i === 0) {
+        if (snakeHeadImg && imagesLoaded) {
+          ctx.drawImage(snakeHeadImg, sx, sy, cs, cs);
+        } else {
+          drawSnakeHead(sx, sy, cs, direction);
+        }
+      } else {
+        const bodyColor = lerpColor(COLORS.snakeBodyStart, COLORS.snakeBodyEnd, t);
+        if (snakeBodyImg && imagesLoaded) {
+          ctx.drawImage(snakeBodyImg, sx, sy, cs, cs);
+        } else {
+          drawSnakeBody(sx, sy, cs, bodyColor, t, i);
+        }
+      }
+    }
+    
+    if (eatAnimation > 0) {
+      const alpha = eatAnimation / 10;
+      const ringSize = cs * (1 + (1 - alpha) * 0.5);
+      ctx.strokeStyle = `rgba(244,165,165,${alpha * 0.5})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(snake[0].x * cs + cs/2, snake[0].y * cs + cs/2, ringSize/2, 0, Math.PI * 2);
+      ctx.stroke();
+      eatAnimation--;
+    }
+  }
+  
+  // Particles
+  updateParticles();
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  
+  animationFrame = requestAnimationFrame(render);
+}
+
+function drawSnakeHead(x, y, size, dir) {
+  const padding = size * 0.08;
+  const r = (size - padding * 2) / 2;
+  
+  const gradient = ctx.createRadialGradient(x + size/2, y + size/2, 2, x + size/2, y + size/2, r);
+  gradient.addColorStop(0, COLORS.snakeBodyStart);
+  gradient.addColorStop(1, COLORS.snakeHead);
+  ctx.fillStyle = gradient;
+  roundRect(ctx, x + padding, y + padding, size - padding*2, size - padding*2, 6);
+  ctx.fill();
+  
+  // Eyes
+  const eyeSize = size * 0.12;
+  let ex1, ey1, ex2, ey2;
+  const center = size / 2;
+  const offset = size * 0.22;
+  const fwd = size * 0.1;
+  
+  switch (dir) {
+    case 'up': ex1=center-offset; ey1=center-fwd; ex2=center+offset; ey2=center-fwd; break;
+    case 'down': ex1=center-offset; ey1=center+fwd; ex2=center+offset; ey2=center+fwd; break;
+    case 'left': ex1=center-fwd; ey1=center-offset; ex2=center-fwd; ey2=center+offset; break;
+    case 'right': ex1=center+fwd; ey1=center-offset; ex2=center+fwd; ey2=center+offset; break;
+  }
+  
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(x + ex1, y + ey1, eyeSize, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + ex2, y + ey2, eyeSize, 0, Math.PI * 2); ctx.fill();
+  
+  ctx.fillStyle = '#2D2D2D';
+  ctx.beginPath(); ctx.arc(x + ex1, y + ey1, eyeSize * 0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + ex2, y + ey2, eyeSize * 0.5, 0, Math.PI * 2); ctx.fill();
+  
+  // Tongue
+  ctx.strokeStyle = '#E07070';
+  ctx.lineWidth = 2;
+  let tx = x + size/2, ty = y + size/2;
+  let tipX, tipY;
+  const tongueLen = size * 0.35;
+  switch (dir) {
+    case 'up': tipX=tx; tipY=ty-tongueLen; break;
+    case 'down': tipX=tx; tipY=ty+tongueLen; break;
+    case 'left': tipX=tx-tongueLen; tipY=ty; break;
+    case 'right': tipX=tx+tongueLen; tipY=ty; break;
+  }
+  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tipX, tipY); ctx.stroke();
+  
+  const fork = size * 0.1;
+  let fx1, fy1, fx2, fy2;
+  switch (dir) {
+    case 'up': fx1=tipX-fork; fy1=tipY+fork; fx2=tipX+fork; fy2=tipY+fork; break;
+    case 'down': fx1=tipX-fork; fy1=tipY-fork; fx2=tipX+fork; fy2=tipY-fork; break;
+    case 'left': fx1=tipX+fork; fy1=tipY-fork; fx2=tipX+fork; fy2=tipY+fork; break;
+    case 'right': fx1=tipX-fork; fy1=tipY-fork; fx2=tipX-fork; fy2=tipY+fork; break;
+  }
+  ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(fx1, fy1);
+  ctx.moveTo(tipX, tipY); ctx.lineTo(fx2, fy2); ctx.stroke();
+}
+
+function drawSnakeBody(x, y, size, color, t, index) {
+  const padding = size * 0.1;
+  const scale = 1 - t * 0.25;
+  const actualSize = (size - padding * 2) * scale;
+  const offset = (size - actualSize) / 2;
+  
+  const gradient = ctx.createRadialGradient(x + size/2, y + size/2, 1, x + size/2, y + size/2, actualSize/2);
+  gradient.addColorStop(0, lightenColor(color, 20));
+  gradient.addColorStop(1, color);
+  ctx.fillStyle = gradient;
+  roundRect(ctx, x + offset, y + offset, actualSize, actualSize, 5 * scale);
+  ctx.fill();
+  
+  if (index % 2 === 0 && t < 0.8) {
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath(); ctx.arc(x + size/2, y + size/2, actualSize * 0.2, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  if (r > w/2) r = w/2;
+  if (r > h/2) r = h/2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+/* ============================================
+   COLOR HELPERS
+   ============================================ */
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : { r: 0, g: 0, b: 0 };
+}
+
+function lerpColor(c1, c2, t) {
+  const rgb1 = hexToRgb(c1), rgb2 = hexToRgb(c2);
+  const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * t);
+  const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * t);
+  const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function lightenColor(color, amount) {
+  const rgb = hexToRgb(color);
+  const r = Math.min(255, rgb.r + amount);
+  const g = Math.min(255, rgb.g + amount);
+  const b = Math.min(255, rgb.b + amount);
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ============================================
+   UI UPDATE
+   ============================================ */
+function updateGameUI() {
+  document.getElementById('gameLevelBadge').textContent = `第${currentLevel+1}关 · ${LEVEL_NAMES[currentLevel]}`;
+  document.getElementById('gameScoreDisplay').textContent = score;
+  document.getElementById('gameTimeDisplay').textContent = gameTime;
+  document.getElementById('gameLengthDisplay').textContent = snakeLength;
+  document.getElementById('gameFoodDisplay').textContent = `${foodEaten}/${foodTarget}`;
+  document.getElementById('gameSpeedDisplay').textContent = SPEED_NAMES[currentLevel];
+}
+
+function showGameMessage(text, duration) {
+  const el = document.getElementById('gameMessage');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration || 2000);
+}
+
+/* ============================================
+   CONTROLS
+   ============================================ */
+function setDirection(dir) {
+  if (!gameRunning) return;
+  const opposite = { up: 'down', down: 'up', left: 'right', right: 'left' };
+  if (dir !== opposite[direction]) {
+    nextDirection = dir;
+    playMoveSound();
+  }
+}
+
+function togglePause() {
+  if (!gameRunning) return;
+  gamePaused = !gamePaused;
+  const btn = document.getElementById('pauseBtn');
+  if (gamePaused) {
+    btn.innerHTML = '▶ 继续';
+    btn.classList.add('paused');
+    showGameMessage('⏸ 已暂停', 0);
+  } else {
+    btn.innerHTML = '⏸ 暂停';
+    btn.classList.remove('paused');
+    document.getElementById('gameMessage').classList.remove('show');
+  }
+  playClickSound();
+}
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  if (currentPage !== 'page-game') return;
+  
+  switch (e.key) {
+    case 'ArrowUp': case 'w': case 'W': e.preventDefault(); setDirection('up'); break;
+    case 'ArrowDown': case 's': case 'S': e.preventDefault(); setDirection('down'); break;
+    case 'ArrowLeft': case 'a': case 'A': e.preventDefault(); setDirection('left'); break;
+    case 'ArrowRight': case 'd': case 'D': e.preventDefault(); setDirection('right'); break;
+    case ' ': e.preventDefault(); togglePause(); break;
+  }
+});
+
+// Touch swipe support
+let touchStartX = 0, touchStartY = 0;
+const wrapperEl = document.getElementById('gameCanvasWrapper');
+wrapperEl.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: true });
+
+wrapperEl.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+}, { passive: false });
+
+wrapperEl.addEventListener('touchend', (e) => {
+  if (!touchStartX || !touchStartY) return;
+  const endX = e.changedTouches[0].clientX;
+  const endY = e.changedTouches[0].clientY;
+  const dx = endX - touchStartX;
+  const dy = endY - touchStartY;
+  const absDx = Math.abs(dx), absDy = Math.abs(dy);
+  
+  if (Math.max(absDx, absDy) < 20) return;
+  
+  if (absDx > absDy) {
+    setDirection(dx > 0 ? 'right' : 'left');
+  } else {
+    setDirection(dy > 0 ? 'down' : 'up');
+  }
+  
+  touchStartX = 0; touchStartY = 0;
+}, { passive: true });
+
+/* ============================================
+   GAME OVER / LEVEL COMPLETE
+   ============================================ */
+function gameOver() {
+  gameRunning = false;
+  if (gameLoop) clearInterval(gameLoop);
+  if (gameTimer) clearInterval(gameTimer);
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  
+  playLoseSound();
+  
+  // Track level 5 failures
+  if (currentLevel === 4) {
+    failCountLevel5++;
+    if (failCountLevel5 >= 5) {
+      setTimeout(() => {
+        document.getElementById('failModal').classList.add('show');
+        playFailCountSound();
+      }, 800);
+      return;
+    }
+  }
+  
+  setTimeout(() => showResult(false), 600);
+}
+
+function levelComplete() {
+  gameRunning = false;
+  if (gameLoop) clearInterval(gameLoop);
+  if (gameTimer) clearInterval(gameTimer);
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  
+  playWinSound();
+  
+  // Calculate stars
+  const par = PAR_TIME[currentLevel];
+  let stars = 1;
+  if (gameTime <= par) stars = 3;
+  else if (gameTime <= par * 1.5) stars = 2;
+  
+  completeLevel(currentLevel, stars);
+  
+  setTimeout(() => showResult(true, stars), 800);
+}
+
+function showResult(won, stars) {
+  showPage('page-result');
+  
+  const icon = document.getElementById('resultIcon');
+  const title = document.getElementById('resultTitle');
+  const msg = document.getElementById('resultMessage');
+  const starsEl = document.getElementById('resultStars');
+  const detail = document.getElementById('resultDetail');
+  const actions = document.getElementById('resultActions');
+  
+  if (won) {
+    const isFinal = currentLevel === 4;
+    icon.textContent = isFinal ? '👑' : '🎉';
+    title.textContent = isFinal ? '恭喜通关全部关卡！' : `第${currentLevel+1}关 · 通过！`;
+    title.className = 'result-title win';
+    
+    if (isFinal) {
+      // Typewriter animation for final victory message
+      msg.innerHTML = '';
+      const twDiv = document.createElement('div');
+      twDiv.className = 'typewriter-text';
+      twDiv.textContent = '你是强中强 b中b';
+      msg.appendChild(twDiv);
+      
+      setTimeout(() => {
+        twDiv.classList.add('typewriter-anim');
+        setTimeout(() => twDiv.classList.add('done'), 1800);
+        playFinalVictorySound();
+      }, 100);
+      
+      setTimeout(() => {
+        document.getElementById('hofEntryModal').classList.add('show');
+      }, 3500);
+    } else {
+      msg.innerHTML = `<span class="msg-line">${LEVEL_PASS[currentLevel]}</span>`;
+    }
+    
+    // Stars animation
+    starsEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const star = document.createElement('span');
+      star.className = 'star' + (i < stars ? '' : ' empty');
+      star.textContent = '★';
+      starsEl.appendChild(star);
+      setTimeout(() => {
+        star.classList.add('show');
+        if (i < stars) playStarSound();
+      }, 400 + i * 400);
+    }
+    
+    detail.innerHTML = `⏱ ${gameTime}秒 · 🎯 ${foodEaten}/${foodTarget} · ⭐ ${stars}/3`;
+    
+    // Confetti
+    spawnConfetti();
+    
+    if (currentLevel < 4) {
+      actions.innerHTML = `
+        <button class="btn btn-primary btn-large" onclick="nextLevel()">下一关 →</button>
+        <button class="btn btn-secondary btn-large" onclick="retryLevel()">再玩一次</button>
+        <button class="btn btn-outline btn-sm" onclick="showPage('page-levels')">返回选关</button>
+      `;
+    } else {
+      actions.innerHTML = `
+        <button class="btn btn-primary btn-large" onclick="showPage('page-levels')">查看所有关卡</button>
+        <button class="btn btn-secondary btn-large" onclick="retryLevel()">再挑战一次</button>
+        <button class="btn btn-outline btn-sm" onclick="showPage('page-home')">返回主页</button>
+      `;
+    }
+    
+  } else {
+    // Game over
+    icon.textContent = '💫';
+    title.textContent = `第${currentLevel+1}关 · 加油！`;
+    title.className = 'result-title lose';
+    msg.innerHTML = `<span class="msg-line">${LEVEL_FAIL[currentLevel]}</span>`;
+    starsEl.innerHTML = '💪';
+    detail.innerHTML = `⏱ ${gameTime}秒 · 📏 ${snakeLength}节 · 🎯 ${foodEaten}/${foodTarget}`;
+    
+    actions.innerHTML = `
+      <button class="btn btn-primary btn-large" onclick="retryLevel()">🔄 再来一次</button>
+      <button class="btn btn-outline btn-sm" onclick="showPage('page-levels')">返回选关</button>
+    `;
+  }
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('app');
+  const confettiDiv = document.createElement('div');
+  confettiDiv.className = 'confetti-container';
+  confettiDiv.id = 'confettiContainer';
+  container.appendChild(confettiDiv);
+  
+  const colors = ['#F4A5A5', '#A8D5BA', '#F5E6CC', '#E8C56C', '#C9A89C', '#FFD5C2', '#8EC5B0'];
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (4 + Math.random() * 6) + 'px';
+    piece.style.height = (4 + Math.random() * 6) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.setProperty('--dur', (2 + Math.random() * 2) + 's');
+    piece.style.animationDelay = Math.random() * 1.5 + 's';
+    confettiDiv.appendChild(piece);
+  }
+  
+  setTimeout(() => {
+    const c = document.getElementById('confettiContainer');
+    if (c) c.remove();
+  }, 5000);
+}
+
+function nextLevel() {
+  if (currentLevel < 4) startLevel(currentLevel + 1);
+}
+
+function retryLevel() {
+  startLevel(currentLevel);
+}
+
+/* ============================================
+   WINDOW HANDLING
+   ============================================ */
+window.addEventListener('resize', () => {
+  if (currentPage === 'page-game' && gameRunning) {
+    const wrapper = document.getElementById('gameCanvasWrapper');
+    const w = wrapper.clientWidth - 4;
+    const h = wrapper.clientHeight - 4;
+    const size = Math.min(w, h, 500);
+    canvasWidth = size;
+    canvasHeight = size;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    cellSize = canvasWidth / GRID_SIZE;
+  }
+});
+
+/* ============================================
+   INITIALIZATION
+   ============================================ */
+function init() {
+  // Load images if configured
+  if (SNAKE_HEAD_IMAGE) {
+    snakeHeadImg = new Image();
+    snakeHeadImg.onload = () => { imagesLoaded = true; };
+    snakeHeadImg.src = SNAKE_HEAD_IMAGE;
+  }
+  if (SNAKE_BODY_IMAGE) {
+    snakeBodyImg = new Image();
+    snakeBodyImg.src = SNAKE_BODY_IMAGE;
+  }
+  
+  // Read actual CSS variable values now that DOM is ready
+  updateCanvasColors();
+  
+  // Set initial theme state
+  if (darkMode) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('themeToggle').innerHTML = '<span class="icon">☀️</span> 日间';
+  }
+  
+  updateHomeHallOfFame();
+  
+  // Observer for canvas sizing
+  const observer = new ResizeObserver(() => {
+    if (currentPage === 'page-game' && canvas) {
+      const wrapper = document.getElementById('gameCanvasWrapper');
+      const w = wrapper.clientWidth - 4;
+      const h = wrapper.clientHeight - 4;
+      const size = Math.min(w, h, 500);
+      if (size !== canvasWidth) {
+        canvasWidth = size;
+        canvasHeight = size;
+        if (canvas) {
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+          cellSize = canvasWidth / GRID_SIZE;
+        }
+      }
+    }
+  });
+  
+  const app = document.getElementById('app');
+  observer.observe(app);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
